@@ -67,9 +67,9 @@ class TestTextNode(unittest.TestCase):
         node = TextNode(text, text_type, url)
 
         # Assert
-        self.assertEqual(node.text, text)
-        self.assertEqual(node.text_type, text_type)
-        self.assertEqual(node.url, url)
+        self.assertEqual(text, node.text)
+        self.assertEqual(text_type, node.text_type)
+        self.assertEqual(url, node.url)
 
     def test_repr(self):
         # Arrange
@@ -83,7 +83,7 @@ class TestTextNode(unittest.TestCase):
         result = repr(node)
 
         # Assert
-        self.assertEqual(result, expected_repr)
+        self.assertEqual(expected_repr, result)
 
     def test_none_eq(self):
         # Arrange
@@ -98,9 +98,9 @@ class TestTextNode(unittest.TestCase):
         node = TextNode(None, None, None)
 
         # Assert
-        self.assertEqual(node.text, None)
-        self.assertEqual(node.text_type, None)
-        self.assertEqual(node.url, None)
+        self.assertIsNone(node.text)
+        self.assertIsNone(node.text_type)
+        self.assertIsNone(node.url)
 
     def test_none_repr(self):
         # Arrange
@@ -111,7 +111,7 @@ class TestTextNode(unittest.TestCase):
         result = repr(node)
 
         # Assert
-        self.assertEqual(result, expected_repr)
+        self.assertEqual(expected_repr, result)
 
 
 if __name__ == "__main__":
