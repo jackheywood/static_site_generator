@@ -25,8 +25,12 @@ class TestLeafNode(unittest.TestCase):
         # Arrange
         node = LeafNode("p", None)
 
-        # Act & Assert
-        self.assertRaises(ValueError, node.to_html)
+        # Act
+        with self.assertRaises(ValueError) as error:
+            node.to_html()
+
+        # Assert
+        self.assertEqual("LeafNode must have a value", str(error.exception))
 
     def test_to_html_no_tag(self):
         # Arrange
