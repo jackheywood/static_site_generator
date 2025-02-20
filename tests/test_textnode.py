@@ -41,7 +41,7 @@ class TestTextNode(unittest.TestCase):
         text = "This is a test"
 
         node1 = TextNode(text, TextType.LINK)
-        node2 = TextNode(text, TextType.NORMAL)
+        node2 = TextNode(text, TextType.TEXT)
 
         # Assert
         self.assertNotEqual(node1, node2)
@@ -118,7 +118,7 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
     def test_normal_text_node_to_html_node(self):
         # Arrange
         text = "Text"
-        node = TextNode(text, TextType.NORMAL)
+        node = TextNode(text, TextType.TEXT)
 
         # Act
         result = text_node_to_html_node(node)
