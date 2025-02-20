@@ -1,9 +1,9 @@
 import unittest
-from parsing import split_nodes_delimiter
+from inline_markdown import split_nodes_delimiter
 from textnode import TextNode, TextType
 
 
-class TestParsing(unittest.TestCase):
+class TestInlineMarkdown(unittest.TestCase):
     def test_split_nodes_delimiter_single_node(self):
         # Arrange
         node = TextNode("Text with **bold phrase** inside", TextType.TEXT)
@@ -43,7 +43,8 @@ class TestParsing(unittest.TestCase):
 
     def test_split_nodes_no_closing_delimiter(self):
         # Arrange
-        node = TextNode("Text without **closing delimiter", TextType.TEXT)
+        text = "Text without **closing delimiter"
+        node = TextNode(text, TextType.TEXT)
 
         # Act
         with self.assertRaises(ValueError) as error:
@@ -51,7 +52,7 @@ class TestParsing(unittest.TestCase):
 
         # Assert
         self.assertEqual(
-            "No closing '**' delimiter found in input text",
+            f"No closing '**' delimiter found in input text: \"{text}\"",
             str(error.exception)
         )
 
@@ -106,3 +107,21 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(TextNode("More ", TextType.TEXT), result[5])
         self.assertEqual(TextNode("bold text", TextType.BOLD), result[6])
         self.assertEqual(node5, result[7])
+
+    def test_split_nodes_chained(self):
+        # Arrange
+        node = TextNode("Text with **bold**, *italic* & `code`", TextType.TEXT)
+
+        # Act
+        step_1 = split_nodes_delimiter([node], "**", TextType.BOLD)
+        step_2 = split_nodes_delimiter(step_1, "*", TextType.ITALIC)
+        result = split_nodes_delimiter(step_2, "`", TextType.CODE)
+
+        # Assert
+        self.assertEqual(6, len(result))
+        self.assertEqual(TextNode("Text with ", TextType.TEXT), result[0])
+        self.assertEqual(TextNode("bold", TextType.BOLD), result[1])
+        self.assertEqual(TextNode(", ", TextType.TEXT), result[2])
+        self.assertEqual(TextNode("italic", TextType.ITALIC), result[3])
+        self.assertEqual(TextNode(" & ", TextType.TEXT), result[4])
+        self.assertEqual(TextNode("code", TextType.CODE), result[5])
