@@ -1,7 +1,11 @@
 import unittest
 from textnode import TextNode, TextType
-from inline_markdown import (split_nodes_delimiter, extract_markdown_images,
-                             extract_markdown_links)
+from inline_markdown import (
+    split_nodes_delimiter,
+    split_nodes_image,
+    extract_markdown_images,
+    extract_markdown_links
+)
 
 
 class TestInlineMarkdown(unittest.TestCase):
@@ -108,6 +112,120 @@ class TestInlineMarkdown(unittest.TestCase):
         self.assertEqual(TextNode("More ", TextType.TEXT), result[5])
         self.assertEqual(TextNode("bold text", TextType.BOLD), result[6])
         self.assertEqual(node5, result[7])
+
+    def test_split_node_images_single_image(self):
+        # Arrange
+        alt = "Image"
+        url = "https://test.img/image.jpg"
+        text = f"Text with ![{alt}]({url}) inside"
+        node = TextNode(text, TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual(3, len(result))
+        self.assertEqual(TextNode("Text with ", TextType.TEXT), result[0])
+        self.assertEqual(TextNode(alt, TextType.IMAGE, url), result[1])
+        self.assertEqual(TextNode(" inside", TextType.TEXT), result[2])
+
+    def test_split_node_images_image_at_start(self):
+        # Arrange
+        alt = "Image"
+        url = "https://test.img/image.jpg"
+        text = f"![{alt}]({url}) at start"
+        node = TextNode(text, TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual(2, len(result))
+        self.assertEqual(TextNode(alt, TextType.IMAGE, url), result[0])
+        self.assertEqual(TextNode(" at start", TextType.TEXT), result[1])
+
+    def test_split_node_images_image_at_end(self):
+        # Arrange
+        alt = "Image"
+        url = "https://test.img/image.jpg"
+        text = f"Image at end ![{alt}]({url})"
+        node = TextNode(text, TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual(2, len(result))
+        self.assertEqual(TextNode("Image at end ", TextType.TEXT), result[0])
+        self.assertEqual(TextNode(alt, TextType.IMAGE, url), result[1])
+
+    def test_split_node_images_multiple_images(self):
+        # Arrange
+        alt1 = "Image"
+        url1 = "https://test.img/image.jpg"
+        alt2 = "Another image"
+        url2 = "https://test.img/another.png"
+
+        text = (f"Text with ![{alt1}]({url1}) multiple "
+                f"![{alt2}]({url2})![{alt2}]({url2}) images")
+
+        node = TextNode(text, TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual(6, len(result))
+        self.assertEqual(TextNode("Text with ", TextType.TEXT), result[0])
+        self.assertEqual(TextNode(alt1, TextType.IMAGE, url1), result[1])
+        self.assertEqual(TextNode(" multiple ", TextType.TEXT), result[2])
+        self.assertEqual(TextNode(alt2, TextType.IMAGE, url2), result[3])
+        self.assertEqual(TextNode(alt2, TextType.IMAGE, url2), result[4])
+        self.assertEqual(TextNode(" images", TextType.TEXT), result[5])
+
+    def test_split_node_images_multiple_nodes(self):
+        # Arrange
+        alt1 = "Image"
+        url1 = "https://test.img/image.jpg"
+        alt2 = "Another image"
+        url2 = "https://test.img/another.png"
+
+        text1 = f"Text with ![{alt1}]({url1}) image"
+        text2 = f"Another one ![{alt2}]({url2})"
+
+        node1 = TextNode(text1, TextType.TEXT)
+        node2 = TextNode(text2, TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node1, node2])
+
+        # Assert
+        self.assertEqual(5, len(result))
+        self.assertEqual(TextNode("Text with ", TextType.TEXT), result[0])
+        self.assertEqual(TextNode(alt1, TextType.IMAGE, url1), result[1])
+        self.assertEqual(TextNode(" image", TextType.TEXT), result[2])
+        self.assertEqual(TextNode("Another one ", TextType.TEXT), result[3])
+        self.assertEqual(TextNode(alt2, TextType.IMAGE, url2), result[4])
+
+    def test_split_node_images_not_text_node(self):
+        # Arrange
+        node = TextNode("Already **a** link", TextType.LINK)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual([node], result)
+
+    def test_split_node_images_no_images(self):
+        # Arrange
+        node = TextNode("Text with no images", TextType.TEXT)
+
+        # Act
+        result = split_nodes_image([node])
+
+        # Assert
+        self.assertEqual([node], result)
 
     def test_split_nodes_chained(self):
         # Arrange
