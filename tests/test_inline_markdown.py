@@ -492,3 +492,7 @@ class TestInlineMarkdown(unittest.TestCase):
         # Assert
         self.assertEqual(1, len(result))
         self.assertEqual(((link, url), 16, 41), result[0])
+
+
+if __name__ == "__main__":
+    unittest.main()
