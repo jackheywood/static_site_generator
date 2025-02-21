@@ -377,43 +377,54 @@ class TestInlineMarkdown(unittest.TestCase):
 
     def test_extract_markdown_images(self):
         # Arrange
-        text = ("[Blah] !(blah) ![Image](https://test.img/image.jpg) blah "
-                "![Another](https://test.img/another.png) blah")
+        alt1 = "Image"
+        url1 = "https://test.img/image.jpg"
+        alt2 = "Another image"
+        url2 = "https://test.img/another.png"
+        text = f"[Blah] !(blah) ![{alt1}]({url1}) blah ![{alt2}]({url2}) blah"
 
         # Act
         result = extract_markdown_images(text)
 
         # Assert
         self.assertEqual(2, len(result))
-        self.assertEqual(("Image", "https://test.img/image.jpg"), result[0])
-        self.assertEqual(("Another", "https://test.img/another.png"), result[1])
+        self.assertEqual(((alt1, url1), 15, 51), result[0])
+        self.assertEqual(((alt2, url2), 57, 103), result[1])
 
     def test_extract_markdown_images_not_links(self):
         # Arrange
-        text = ("Blah [] blah ![Image](https://test.img/image.jpg) blah "
+        alt = "Image"
+        url = "https://test.img/image.jpg"
+        text = (f"Blah [] blah ![{alt}]({url}) blah "
                 "[Link](https://test.link) blah()!")
 
         # Act
         result = extract_markdown_images(text)
         self.assertEqual(1, len(result))
-        self.assertEqual(("Image", "https://test.img/image.jpg"), result[0])
+        self.assertEqual(((alt, url), 13, 49), result[0])
 
     def test_extract_markdown_links(self):
         # Arrange
-        text = ("Blah ()blah [Link](https://test.link) blah "
-                "[Another](https://another.link) [blah]")
+        link1 = "Link"
+        url1 = "https://test.link"
+        link2 = "Another"
+        url2 = "https://another.link"
+
+        text = f"Blah ()blah [{link1}]({url1}) blah [{link2}]({url2}) [blah]"
 
         # Act
         result = extract_markdown_links(text)
 
         # Assert
         self.assertEqual(2, len(result))
-        self.assertEqual(("Link", "https://test.link"), result[0])
-        self.assertEqual(("Another", "https://another.link"), result[1])
+        self.assertEqual(((link1, url1), 12, 37), result[0])
+        self.assertEqual(((link2, url2), 43, 74), result[1])
 
     def test_extract_markdown_links_not_images(self):
         # Arrange
-        text = ("Blah blah [] () [Link](https://test.link) blah ! "
+        link = "Link"
+        url = "https://test.link"
+        text = (f"Blah blah [] () [{link}]({url}) blah ! "
                 "![Image](https://another.link) [blah]")
 
         # Act
@@ -421,4 +432,4 @@ class TestInlineMarkdown(unittest.TestCase):
 
         # Assert
         self.assertEqual(1, len(result))
-        self.assertEqual(("Link", "https://test.link"), result[0])
+        self.assertEqual(((link, url), 16, 41), result[0])

@@ -16,11 +16,10 @@ def split_nodes_image(old_nodes):
 
     for node in old_nodes:
         new_nodes.extend(
-            split_node_with_extractor(
+            extract_and_split_node(
                 node,
                 extract_markdown_images,
-                split_markdown_image,
-                TextType.IMAGE
+                TextType.IMAGE,
             )
         )
 
@@ -32,11 +31,10 @@ def split_nodes_link(old_nodes):
 
     for node in old_nodes:
         new_nodes.extend(
-            split_node_with_extractor(
+            extract_and_split_node(
                 node,
                 extract_markdown_links,
-                split_markdown_link,
-                TextType.LINK
+                TextType.LINK,
             )
         )
 
@@ -61,38 +59,50 @@ def split_node_delimiter(node, delimiter, delimited_type):
     ]
 
 
-def split_node_with_extractor(node, extractor, splitter, extracted_type):
+def extract_and_split_node(
+        node,
+        markdown_extractor,
+        extracted_type):
     if node.text_type != TextType.TEXT:
         return [node]
 
     new_nodes = []
-    extracted = extractor(node.text)
-    remaining_markdown = node.text
+    extracted_matches = markdown_extractor(node.text)
 
-    for (text, url) in extracted:
-        sections = splitter(remaining_markdown, text, url)
-        if sections[0]:
-            new_nodes.append(TextNode(sections[0], TextType.TEXT))
-        new_nodes.append(TextNode(text, extracted_type, url))
-        remaining_markdown = sections[1]
+    start = 0
+    for ((text, url), match_start, match_end) in extracted_matches:
+        if start < match_start:
+            text_node = TextNode(node.text[start:match_start], TextType.TEXT)
+            new_nodes.append(text_node)
 
-    if remaining_markdown:
-        new_nodes.append(TextNode(remaining_markdown, TextType.TEXT))
+        extracted_node = TextNode(text, extracted_type, url)
+        new_nodes.append(extracted_node)
+        start = match_end
+
+    if start < len(node.text):
+        final_node = TextNode(node.text[start:], TextType.TEXT)
+        new_nodes.append(final_node)
 
     return new_nodes
 
 
 def extract_markdown_images(text):
-    return re.findall(r"!\[([^\[\]]*)]\(([^()]*)\)", text)
+    return extract_markdown_with_positions(
+        r"!\[([^\[\]]*)]\(([^()]*)\)",
+        text,
+    )
 
 
 def extract_markdown_links(text):
-    return re.findall(r"(?<!!)\[([^\[\]]*)]\(([^()]*)\)", text)
+    return extract_markdown_with_positions(
+        r"(?<!!)\[([^\[\]]*)]\(([^()]*)\)",
+        text,
+    )
 
 
-def split_markdown_image(markdown, alt, url):
-    return markdown.split(f"![{alt}]({url})", 1)
-
-
-def split_markdown_link(markdown, text, url):
-    return markdown.split(f"[{text}]({url})", 1)
+def extract_markdown_with_positions(regex, text):
+    matches = re.finditer(regex, text)
+    return [
+        (match.groups(), match.start(), match.end())
+        for match in matches
+    ]
