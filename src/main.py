@@ -1,22 +1,11 @@
-from textnode import TextNode, TextType
-from leafnode import LeafNode
-from parentnode import ParentNode
+from inline_markdown import extract_markdown_images
 
 
 def main():
-    node = TextNode('Hello World', TextType.ITALIC, "https://example.com")
-    print(node)
+    text = ("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) "
+            "and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
 
-    parent = ParentNode(
-        "p",
-        [
-            LeafNode("b", "Bold text"),
-            LeafNode(None, "Normal text"),
-            LeafNode("i", "Italic text"),
-        ]
-    )
-
-    print(parent.to_html())
+    print(extract_markdown_images(text))
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import unittest
-from inline_markdown import split_nodes_delimiter
 from textnode import TextNode, TextType
+from inline_markdown import (split_nodes_delimiter, extract_markdown_images,
+                             extract_markdown_links)
 
 
 class TestInlineMarkdown(unittest.TestCase):
@@ -125,3 +126,51 @@ class TestInlineMarkdown(unittest.TestCase):
         self.assertEqual(TextNode("italic", TextType.ITALIC), result[3])
         self.assertEqual(TextNode(" & ", TextType.TEXT), result[4])
         self.assertEqual(TextNode("code", TextType.CODE), result[5])
+
+    def test_extract_markdown_images(self):
+        # Arrange
+        text = ("[Blah] !(blah) ![Image](https://test.img/image.jpg) blah "
+                "![Another](https://test.img/another.png) blah")
+
+        # Act
+        result = extract_markdown_images(text)
+
+        # Assert
+        self.assertEqual(2, len(result))
+        self.assertEqual(("Image", "https://test.img/image.jpg"), result[0])
+        self.assertEqual(("Another", "https://test.img/another.png"), result[1])
+
+    def test_extract_markdown_images_not_links(self):
+        # Arrange
+        text = ("Blah [] blah ![Image](https://test.img/image.jpg) blah "
+                "[Link](https://test.link) blah()!")
+
+        # Act
+        result = extract_markdown_images(text)
+        self.assertEqual(1, len(result))
+        self.assertEqual(("Image", "https://test.img/image.jpg"), result[0])
+
+    def test_extract_markdown_links(self):
+        # Arrange
+        text = ("Blah ()blah [Link](https://test.link) blah "
+                "[Another](https://another.link) [blah]")
+
+        # Act
+        result = extract_markdown_links(text)
+
+        # Assert
+        self.assertEqual(2, len(result))
+        self.assertEqual(("Link", "https://test.link"), result[0])
+        self.assertEqual(("Another", "https://another.link"), result[1])
+
+    def test_extract_markdown_links_not_images(self):
+        # Arrange
+        text = ("Blah blah [] () [Link](https://test.link) blah ! "
+                "![Image](https://another.link) [blah]")
+
+        # Act
+        result = extract_markdown_links(text)
+
+        # Assert
+        self.assertEqual(1, len(result))
+        self.assertEqual(("Link", "https://test.link"), result[0])
