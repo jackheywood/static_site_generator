@@ -8,7 +8,7 @@ class TestMarkdown(unittest.TestCase):
         # Arrange
         md = """
 This is **bolded** paragraph
-text in a p
+ text in a p
 tag here
 
 This one has _italic_ text and `code`
