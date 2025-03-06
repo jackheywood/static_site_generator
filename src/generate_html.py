@@ -3,7 +3,11 @@ import os
 from markdown import markdown_to_html_node, extract_title
 
 
-def generate_pages_recursive(source_dir_path, template_path, dest_dir_path):
+def generate_pages_recursive(
+        source_dir_path,
+        template_path,
+        dest_dir_path,
+        basepath):
     if not os.path.exists(source_dir_path):
         raise IOError(f"Source directory '{source_dir_path}' does not exist")
 
@@ -12,12 +16,22 @@ def generate_pages_recursive(source_dir_path, template_path, dest_dir_path):
         dest_path = os.path.join(dest_dir_path, os.path.splitext(entry)[0])
 
         if os.path.isdir(source_path):
-            generate_pages_recursive(source_path, template_path, dest_path)
+            generate_pages_recursive(
+                source_path,
+                template_path,
+                dest_path,
+                basepath,
+            )
         elif entry.endswith(".md") and os.path.isfile(source_path):
-            generate_page(source_path, template_path, dest_path + ".html")
+            generate_page(
+                source_path,
+                template_path,
+                dest_path + ".html",
+                basepath,
+            )
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f" * {from_path} -> {dest_path}")
 
     markdown = read_file(from_path)
@@ -28,6 +42,8 @@ def generate_page(from_path, template_path, dest_path):
 
     html = template.replace("{{ Title }}", title)
     html = html.replace("{{ Content }}", content)
+    html = html.replace('href="/', f'href="{basepath}')
+    html = html.replace('src="/', f'src="{basepath}')
 
     write_file(dest_path, html)
 

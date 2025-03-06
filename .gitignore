@@ -6,6 +6,3 @@ __pycache__/
 # Environments
 venv/
 .venv/
-
-# Generated
-public/
