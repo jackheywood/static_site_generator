@@ -3,11 +3,22 @@ import os
 from markdown import markdown_to_html_node, extract_title
 
 
+def generate_pages_recursive(source_dir_path, template_path, dest_dir_path):
+    if not os.path.exists(source_dir_path):
+        raise IOError(f"Source directory '{source_dir_path}' does not exist")
+
+    for entry in os.listdir(source_dir_path):
+        source_path = os.path.join(source_dir_path, entry)
+        dest_path = os.path.join(dest_dir_path, os.path.splitext(entry)[0])
+
+        if os.path.isdir(source_path):
+            generate_pages_recursive(source_path, template_path, dest_path)
+        elif entry.endswith(".md") and os.path.isfile(source_path):
+            generate_page(source_path, template_path, dest_path + ".html")
+
+
 def generate_page(from_path, template_path, dest_path):
-    print(
-        f"Generating page from {from_path} to {dest_path}"
-        f" using template {template_path}"
-    )
+    print(f" * {from_path} -> {dest_path}")
 
     markdown = read_file(from_path)
     template = read_file(template_path)
