@@ -1,6 +1,6 @@
 import unittest
 
-from markdown import markdown_to_html_node
+from markdown import markdown_to_html_node, extract_title
 
 
 class TestMarkdown(unittest.TestCase):
@@ -144,6 +144,31 @@ the **same** even with inline stuff
             "</div>",
             node.to_html()
         )
+
+    def test_extract_title(self):
+        # Arrange
+        md = """
+This is markdown
+## With an h2
+#   And a title 
+"""
+
+        # Act
+        title = extract_title(md)
+
+        # Assert
+        self.assertEqual("And a title", title)
+
+    def test_extract_title_no_title(self):
+        # Arrange
+        md = "## No title"
+
+        # Act
+        with self.assertRaises(ValueError) as error:
+            extract_title(md)
+
+        # Assert
+        self.assertEqual("No title found for markdown", str(error.exception))
 
 
 if __name__ == "__main__":
